@@ -2,31 +2,53 @@ import sys
 from random import randint
 
 
-def main():
-    atm_login()
+login_identifier = input("Type your user: ")
+login_pin = input("Type your pin: ")
 
 
-def atm_login():
-    print("****************Welcome to ATM 24 hours******************")
-    login_attempts = 3
-    while login_attempts > 0:
-        login_identifier = input("Type your user: ")
-        if login_identifier == open("user_identifier.txt").read():
-            login_pin = input("Type your PIN: ")
-            if login_pin == open("user_pin.txt").read():
-                print("Thanks for login!")
-                return atm_main_menu()
-            else:
-                print("Sorry, your PIN is incorrect")
-                login_attempts = login_attempts - 1
+class getToken:
+
+    def __init__(self, login_identifier, login_pin):
+        self.login_identifier = login_identifier
+        self.login_pin = login_pin
+
+    def __getToken__(self):
+        userToken = 0
+        login_identifier_file = open("user_identifier.txt", "r")
+        x = login_identifier_file.read().splitlines()
+        if login_identifier in x:
+            userToken = x.index(login_identifier)
         else:
-            print("Sorry, your user is incorrect")
-            login_attempts = login_attempts - 1
-    print("Sorry, you already tried 3 times!")
+            print("Sorry, we couldn't find your user")
+            sys.exit()
+
+        loginToken = 0
+        login_pin_file = open("user_pin.txt", "r")
+        x = login_pin_file.read().splitlines()
+        if login_pin in x:
+            loginToken = x.index(login_pin)
+        else:
+            print("Sorry, we couldn't find your password")
+            sys.exit()
+
+        if userToken == loginToken:
+            print("You've logged in,", login_identifier)
+            login_identifier_file.close()
+            login_pin_file.close()
+            return userToken
+        else:
+            print("Sorry, your user / pin are incorrect.")
+            sys.exit()
 
 
-def atm_main_menu():
-    print("****************Welcome to ATM 24 hours******************")
+inst = getToken(login_identifier, login_pin)
+userToken = inst.__getToken__()
+
+loop = 1
+while loop == 1:
+    print("----------------------------------------------------\n"
+          "|             Welcome to ATM 24 HOURS              |\n"
+          "----------------------------------------------------")
     print("Choose your option: ")
     print("1. Retire")
     print("2. Consult")
@@ -35,144 +57,169 @@ def atm_main_menu():
     print("5. Exit")
     user_choice = (input("Your choice: "))
     if user_choice == "1":
-        return atm_retire()
-    elif user_choice == "2":
-        return atm_consult()
-    elif user_choice == "3":
-        return atm_deposit()
-    elif user_choice == "4":
-        return atm_recharge()
-    elif user_choice == "5":
-        return sys.exit()
+        retire = input("Type the amount to retire: ")
+        user_money_file = open("user_money.txt", "r")
+        money_list = user_money_file.readlines()
+        user_money = int(money_list[userToken])
+        if user_money > int(retire):
+            print("You can complete the transaction!")
+            updated_balance = str(int(user_money) - int(retire))
 
+            money_list = []
+            with open("user_money.txt", "r") as f:
+                get_all = f.readlines()
+                for x in get_all:
+                    money_list.append(x)
+            money_list[userToken] = (updated_balance + "\n")
 
-def atm_retire():
-    retire = input("Type the amount to retire: ")
-    for line in open("user_money.txt"):
-        if line.strip():
-            user_money = int(line)
-    if int(retire) > user_money:
-        print("Sorry, you don't have sufficient money")
-    else:
-        for line in open("user_money.txt"):
-            if line.strip():
-                user_money_int = int(line)
-                updated_balance = user_money_int - int(retire)
-                print("Thank you,", retire, "was retired from your account")
-                user_money_file = open("user_money.txt", "w")
-                user_money_file.write(str(updated_balance))
-                user_money_file.close()
+            file = open("user_money.txt", "w")
+            for line in money_list:
+                file.write(line)
+            file.close()
 
-                print("Go to main menu\n1. Yes\n2. No")
-                decision = input("Decision: ")
-                if decision == "1":
-                    return atm_main_menu()
-                elif decision == "2":
-                    sys.exit()
-                elif decision != "1" and decision != "2":
-                    print("Sorry, incorrect option")
-
-
-def atm_consult():
-    print("Your current balance is:", open("user_money.txt").read(), "dollars")
-
-    print("Go to main menu\n1. Yes\n2. No")
-    decision = input("Decision: ")
-    if decision == "1":
-        return atm_main_menu()
-    elif decision == "2":
-        sys.exit()
-    elif decision != "1" and decision != "2":
-        print("Sorry, incorrect option")
-
-
-def atm_deposit():
-    deposit = input("Type the amount you want to deposit: ")
-    for line in open("user_money.txt"):
-        if line.strip():
-            user_money_int = int(line)
-            updated_balance = user_money_int + int(deposit)
-            print("Thank you,", deposit, "was deposited in your account")
-            user_money_file = open("user_money.txt", "w")
-            user_money_file.write(str(updated_balance))
-            user_money_file.close()
-
-            print("Go to main menu\n1. Yes\n2. No")
-            decision = input("Decision: ")
-            if decision == "1":
-                return atm_main_menu()
-            elif decision == "2":
+            print("Would you like to continue to the main menu?\n1. Yes\n2. No")
+            choice = int(input("Decision: "))
+            if choice != 1:
+                print("Thank you for coming,", login_identifier)
                 sys.exit()
-            elif decision != "1" and decision != "2":
-                print("Sorry, incorrect option")
+            else:
+                loop = 1
 
+    elif user_choice == "2":
+        money_list = []
+        with open("user_money.txt", "r") as f:
+            get_all = f.readlines()
+            for x in get_all:
+                money_list.append(x)
+        print("Your current balance is:", money_list[userToken])
 
-def atm_recharge():
-    print("Select your carrier:\n1. Altice\n2. Claro\n3. Viva")
-    user_decision = input("Decision: ")
+        print("Would you like to continue to the main menu?\n1. Yes\n2. No")
+        choice = int(input("Decision: "))
+        if choice != 1:
+            print("Thank you for coming,", login_identifier)
+            sys.exit()
+        else:
+            loop = 1
 
-    if user_decision == "1":
-        recharge_amount = input("Type the recharge amount: ")
-        print("Thank you,", recharge_amount, "were removed from your account.")
-        print("Here is your recharge code:", randint(10000, 99999))
-        for line in open("user_money.txt"):
-            if line.strip():
-                user_money_int = int(line)
-                updated_balance = user_money_int - int(recharge_amount)
-                user_money_file = open("user_money.txt", "w")
-                user_money_file.write(str(updated_balance))
-                user_money_file.close()
+    elif user_choice == "3":
+        deposit = int(input("Write the amount you want to deposit: "))
 
-                print("Go to main menu\n1. Yes\n2. No")
-                decision = input("Decision: ")
-                if decision == "1":
-                    return atm_main_menu()
-                elif decision == "2":
-                    sys.exit()
-                elif decision != "1" and decision != "2":
-                    print("Sorry, incorrect option")
+        user_money_file = open("user_money.txt", "r")
+        money_list = user_money_file.readlines()
+        user_money = int(money_list[userToken])
+        updated_balance = str(int(user_money) + int(deposit))
 
-    elif user_decision == "2":
-        recharge_amount = input("Type the recharge amount: ")
-        print("Thank you,", recharge_amount, "were removed from your account.")
-        print("Here is your recharge code:", randint(10000, 99999))
-        for line in open("user_money.txt"):
-            if line.strip():
-                user_money_int = int(line)
-                updated_balance = user_money_int - int(recharge_amount)
-                user_money_file = open("user_money.txt", "w")
-                user_money_file.write(str(updated_balance))
-                user_money_file.close()
+        money_list = []
+        with open("user_money.txt", "r") as f:
+            get_all = f.readlines()
+            for x in get_all:
+                money_list.append(x)
+        money_list[userToken] = (updated_balance + "\n")
 
-                print("Go to main menu\n1. Yes\n2. No")
-                decision = input("Decision: ")
-                if decision == "1":
-                    return atm_main_menu()
-                elif decision == "2":
-                    sys.exit()
-                elif decision != "1" and decision != "2":
-                    print("Sorry, incorrect option")
+        file = open("user_money.txt", "w")
+        for line in money_list:
+            file.write(line)
+        file.close()
 
-    elif user_decision == "3":
-        recharge_amount = input("Type the recharge amount: ")
-        print("Thank you,", recharge_amount, "were removed from your account.")
-        print("Here is your recharge code:", randint(10000, 99999))
-        for line in open("user_money.txt"):
-            if line.strip():
-                user_money_int = int(line)
-                updated_balance = user_money_int - int(recharge_amount)
-                user_money_file = open("user_money.txt", "w")
-                user_money_file.write(str(updated_balance))
-                user_money_file.close()
+        print("Would you like to continue to the main menu?\n1. Yes\n2. No")
+        choice = int(input("Decision: "))
+        if choice != 1:
+            print("Thank you for coming,", login_identifier)
+            sys.exit()
+        else:
+            loop = 1
 
-                print("Go to main menu\n1. Yes\n2. No")
-                decision = input("Decision: ")
-                if decision == "1":
-                    return atm_main_menu()
-                elif decision == "2":
-                    sys.exit()
-                elif decision != "1" and decision != "2":
-                    print("Sorry, incorrect option")
+    elif user_choice == "4":
+        print("Please select the carrier:\n1. Altice\n2. Claro\n3. Viva")
+        decision = int(input("Decision: "))
+        amount = int(input("Type the amount of the recharge: "))
+        if decision == 1:
+            print("You selected the carrier Altice")
+            user_money_file = open("user_money.txt", "r")
+            money_list = user_money_file.readlines()
+            user_money = int(money_list[userToken])
+            updated_balance = str(int(user_money) - int(amount))
 
+            money_list = []
+            with open("user_money.txt", "r") as f:
+                get_all = f.readlines()
+                for x in get_all:
+                    money_list.append(x)
+            money_list[userToken] = (updated_balance + "\n")
 
-main()
+            file = open("user_money.txt", "w")
+            for line in money_list:
+                file.write(line)
+            file.close()
+
+            print("Here is your code:", randint(10000, 99999))
+
+            print("Would you like to continue to the main menu?\n1. Yes\n2. No")
+            choice = int(input("Decision: "))
+            if choice != 1:
+                print("Thank you for coming,", login_identifier)
+                sys.exit()
+            else:
+                loop = 1
+
+        elif decision == 2:
+            print("You selected the carrier Claro")
+            user_money_file = open("user_money.txt", "r")
+            money_list = user_money_file.readlines()
+            user_money = int(money_list[userToken])
+            updated_balance = str(int(user_money) - int(amount))
+
+            money_list = []
+            with open("user_money.txt", "r") as f:
+                get_all = f.readlines()
+                for x in get_all:
+                    money_list.append(x)
+            money_list[userToken] = (updated_balance + "\n")
+
+            file = open("user_money.txt", "w")
+            for line in money_list:
+                file.write(line)
+            file.close()
+
+            print("Here is your code:", randint(10000, 99999))
+
+            print("Would you like to continue to the main menu?\n1. Yes\n2. No")
+            choice = int(input("Decision: "))
+            if choice != 1:
+                print("Thank you for coming,", login_identifier)
+                sys.exit()
+            else:
+                loop = 1
+
+        elif decision == 3:
+            print("You selected the carrier Viva")
+            user_money_file = open("user_money.txt", "r")
+            money_list = user_money_file.readlines()
+            user_money = int(money_list[userToken])
+            updated_balance = str(int(user_money) - int(amount))
+
+            money_list = []
+            with open("user_money.txt", "r") as f:
+                get_all = f.readlines()
+                for x in get_all:
+                    money_list.append(x)
+            money_list[userToken] = (updated_balance + "\n")
+
+            file = open("user_money.txt", "w")
+            for line in money_list:
+                file.write(line)
+            file.close()
+
+            print("Here is your code:", randint(10000, 99999))
+
+            print("Would you like to continue to the main menu?\n1. Yes\n2. No")
+            choice = int(input("Decision: "))
+            if choice != 1:
+                print("Thank you for coming,", login_identifier)
+                sys.exit()
+            else:
+                loop = 1
+
+    elif user_choice == "5":
+        print("Thank you for coming,", login_identifier)
+        sys.exit()
